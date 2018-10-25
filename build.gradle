@@ -51,3 +51,4 @@ publishing {
 }
 
 [finalSetup, candidateSetup, snapshotSetup].each { it.dependsOn(build)}
+postRelease.finalizedBy(bintrayPublish)

@@ -8,6 +8,7 @@ import org.junit.rules.ExternalResource;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,19 +56,32 @@ public class ProjectGeneratorRule extends ExternalResource {
     private final List<File> fileList;
     private final File projectDir;
 
+    private static File temporaryDir;
+
     public ProjectGeneratorRule(File projectDir) {
         this.projectDir = projectDir;
         this.fileList = new ArrayList<>();
     }
 
     private void unzip() throws IOException, ZipException {
-        URL templates = this.getClass().getClassLoader().getResource("projectTemplate.zip");
-
-        if(templates == null) {
-            throw new IOException("Unable to load project templates");
+        String name = "projectTemplate.zip";
+        if (temporaryDir == null) {
+            temporaryDir = Files.createTempDirectory("ProjectGeneratorRuleUnpack").toFile();
+            temporaryDir.deleteOnExit();
         }
 
-        String source = templates.getPath();
+        File temp = new File(temporaryDir, "projectTemplate.zip");
+        try (InputStream is = ProjectGeneratorRule.class.getResourceAsStream("/" + name)) {
+            Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            FileUtils.forceDelete(temp);
+            throw e;
+        } catch (NullPointerException e) {
+            FileUtils.forceDelete(temp);
+            throw new FileNotFoundException("File " + name + " was not found inside JAR.");
+        }
+
+        String source = temp.getPath();
         File tempCopyDestination = Files.createTempDirectory("ProjectGeneratorRule").toFile();
         ZipFile zipFile = new ZipFile(source);
         zipFile.extractAll(tempCopyDestination.getPath());

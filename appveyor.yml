@@ -5,7 +5,6 @@ branches:
   only:
   - master
 platform: Any CPU
-shallow_clone: true
 test_script:
   - gradlew check
 build: off

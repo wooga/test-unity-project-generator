@@ -50,4 +50,4 @@ publishing {
     }
 }
 
-[project.tasks.finalSetup, project.tasks.candidateSetup, project.tasks.snapshotSetup].each { it.dependsOn(build)}
+[finalSetup, candidateSetup, snapshotSetup].each { it.dependsOn(build)}

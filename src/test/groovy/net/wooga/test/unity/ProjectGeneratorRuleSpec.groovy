@@ -23,10 +23,10 @@ class ProjectGeneratorRuleSpec extends Specification {
     }
 
     def "creates unity project before test"() {
-        when:
+        given:
         rule.before()
 
-        then:
+        expect:
         new File(projectDir, "Assets").exists()
         new File(projectDir, "ProjectSettings").exists()
         new File(projectDir, "ProjectSettings/ProjectVersion.txt").exists()
@@ -80,5 +80,43 @@ class ProjectGeneratorRuleSpec extends Specification {
         where:
         version1 = "2018.0.0f1"
         version2 = "2018.1.1b4"
+    }
+
+    def "can reset project directory"() {
+        given:
+        def newTmp = File.createTempDir()
+        rule.projectDir = newTmp
+        rule.before()
+
+        expect:
+        new File(newTmp, "Assets").exists()
+        new File(newTmp, "ProjectSettings").exists()
+        new File(newTmp, "ProjectSettings/ProjectVersion.txt").exists()
+        new File(newTmp, "Library").exists()
+        new File(newTmp, "Temp").exists()
+        new File(newTmp, "Packages").exists()
+    }
+
+    def "can reset project dir during test"() {
+        given:
+        rule.before()
+        def newTmp = File.createTempDir()
+        rule.projectDir = newTmp
+
+        expect:
+        new File(newTmp, "Assets").exists()
+        new File(newTmp, "ProjectSettings").exists()
+        new File(newTmp, "ProjectSettings/ProjectVersion.txt").exists()
+        new File(newTmp, "Library").exists()
+        new File(newTmp, "Temp").exists()
+        new File(newTmp, "Packages").exists()
+    }
+
+    def "projectDir is readable"() {
+        given:
+        rule.before()
+
+        expect:
+        rule.projectDir == projectDir
     }
 }

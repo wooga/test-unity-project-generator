@@ -4,9 +4,10 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.ExternalResource;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -21,15 +22,6 @@ public class ProjectGeneratorRule extends ExternalResource {
         writeEditorVersion();
     }
 
-    private void writeEditorVersion() throws FileNotFoundException, UnsupportedEncodingException {
-        File editorVersionFile = new File(projectDir,"ProjectSettings/ProjectVersion.txt");
-        if(getProjectVersion() != null && editorVersionFile.exists()) {
-            PrintWriter writer = new PrintWriter(editorVersionFile, "UTF-8");
-            writer.println("m_EditorVersion: " + getProjectVersion());
-            writer.close();
-        }
-    }
-
     @Override
     protected void after() {
         super.after();
@@ -39,9 +31,24 @@ public class ProjectGeneratorRule extends ExternalResource {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public Statement apply(Statement base, Description description) {
+        return super.apply(base, description);
 
     }
 
+    private void writeEditorVersion() throws FileNotFoundException, UnsupportedEncodingException {
+        File editorVersionFile = new File(projectDir,"ProjectSettings/ProjectVersion.txt");
+        if(getProjectVersion() != null && editorVersionFile.exists()) {
+            PrintWriter writer = new PrintWriter(editorVersionFile, "UTF-8");
+            writer.println("m_EditorVersion: " + getProjectVersion());
+            writer.close();
+        }
+    }
+
+    private boolean started;
     private String projectVersion;
 
     public String getProjectVersion() {
@@ -54,12 +61,28 @@ public class ProjectGeneratorRule extends ExternalResource {
     }
 
     private final List<File> fileList;
-    private final File projectDir;
+    private File projectDir;
+
+    public File getProjectDir() {
+        return projectDir;
+    }
+
+    public void setProjectDir(File projectDir) throws IOException {
+        if(this.projectDir != null && projectDir != null && projectDir.exists() && projectDir.isDirectory()) {
+            FileUtils.copyDirectory(this.projectDir, projectDir);
+        }
+        this.projectDir = projectDir;
+    }
 
     private static File temporaryDir;
 
     public ProjectGeneratorRule(File projectDir) {
         this.projectDir = projectDir;
+        this.fileList = new ArrayList<>();
+    }
+
+    public ProjectGeneratorRule() throws IOException {
+        this.projectDir = Files.createTempDirectory("ProjectGeneratorRuleProject").toFile();
         this.fileList = new ArrayList<>();
     }
 

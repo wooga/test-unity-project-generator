@@ -35,8 +35,8 @@ bintray {
         vcsUrl = 'https://github.com/wooga/test-unity-project-generator.git'
         labels = ['test', 'JUnit', 'unity']
         version {
-            name = version.toString()
-            vcsTag = version.toString()
+            name = project.version.toString()
+            vcsTag = project.version.toString()
             released = new Date()
         }
     }
